@@ -32,10 +32,20 @@ function App() {
   
   let {userData} = useSelector(state=>state.user)
 
-  useGetCurrentUser()
+  const authLoading = useGetCurrentUser()
   useGetCourseData()
   useGetCreatorCourseData()
   useGetAllReviews()
+
+  // Jab tak login check poora nahi hota, routes render mat karo
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    )
+  }
+
   return (
     <>
     
