@@ -10,6 +10,7 @@ import { ClipLoader } from 'react-spinners'
 function EditLecture() {
     const [loading,setLoading]= useState(false)
     const [loading1,setLoading1]= useState(false)
+    const [uploadProgress, setUploadProgress] = useState(0)
     const {courseId , lectureId} = useParams()
     const {lectureData} = useSelector(state=>state.lecture)
     const dispatch = useDispatch()
@@ -31,6 +32,7 @@ function EditLecture() {
 
     const editLecture = async () => {
       setLoading(true)
+      setUploadProgress(0)
       try {
         const formData = new FormData()
         formData.append("lectureTitle",lectureTitle)
@@ -39,7 +41,15 @@ function EditLecture() {
         }
         formData.append("isPreviewFree",isPreviewFree)
 
-        const result = await axios.post(serverUrl + `/api/course/editlecture/${lectureId}` , formData , {withCredentials:true})
+        const result = await axios.post(serverUrl + `/api/course/editlecture/${lectureId}` , formData , {
+          withCredentials:true,
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+              setUploadProgress(percent)
+            }
+          }
+        })
         console.log(result.data)
         // Purani lecture ko update karo, naya duplicate entry mat banao
         dispatch(setLectureData(lectureData.map(lec => lec._id === lectureId ? result.data : lec)))
@@ -126,7 +136,17 @@ function EditLecture() {
           </div>
         </div>
          <div>
-          {loading ?<p>Uploading video... Please wait.</p>:""}
+          {loading && (
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600">Uploading video... {uploadProgress}%</p>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  className="bg-black h-2.5 rounded-full transition-all duration-200"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
          </div>
         {/* Submit Button */}
         <div className="pt-4">
